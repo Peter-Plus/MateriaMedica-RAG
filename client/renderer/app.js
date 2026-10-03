@@ -5,6 +5,24 @@ function showError(id, error) { $(id).textContent = error?.message || String(err
 function showApp() { $('auth-view').classList.add('hidden'); $('app-view').classList.remove('hidden'); }
 function showAuth() { $('app-view').classList.add('hidden'); $('auth-view').classList.remove('hidden'); }
 
+function closeMobileSidebar() {
+  $('app-view').classList.remove('menu-open');
+  $('history-toggle').setAttribute('aria-expanded', 'false');
+}
+
+function enterApp(user) {
+  state.user = user;
+  state.conversationId = null;
+  $('username-label').textContent = user.username;
+  $('password').value = '';
+  $('chat-title').textContent = '开始一次检索';
+  $('question').value = '';
+  showError('chat-error', '');
+  closeMobileSidebar();
+  showApp();
+  welcome();
+}
+
 function setBusy(busy) {
   state.busy = busy;
   for (const button of document.querySelectorAll('#app-view button')) button.disabled = busy;
@@ -105,6 +123,7 @@ async function openConversation(item) {
   try {
     const result = await window.bcrag.request(`/api/conversations/${item.id}/messages`);
     state.conversationId = item.id;
+    closeMobileSidebar();
     $('chat-title').textContent = item.title;
     $('messages').replaceChildren();
     for (const message of result.messages) addMessage(message);
@@ -122,14 +141,7 @@ async function onAuth(event) {
     const result = await window.bcrag.request(`/api/auth/${state.mode}`, 'POST', {
       username: $('username').value.trim(), password: $('password').value
     });
-    state.user = result.user;
-    $('username-label').textContent = result.user.username;
-    $('password').value = '';
-    $('chat-title').textContent = '开始一次检索';
-    $('question').value = '';
-    showError('chat-error', '');
-    showApp();
-    welcome();
+    enterApp(result.user);
     await refreshSidebar();
     $('question').focus();
   } catch (error) { showError('auth-error', error); }
@@ -167,10 +179,14 @@ async function onChat(event) {
 }
 
 async function openSettings() {
-  if (state.busy) return;
+  if (state.busy || window.bcrag.isWeb) return;
   try {
     const settings = await window.bcrag.getSettings();
-    $('server-url').value = settings.serverUrl;
+    const endpoint = new URL(settings.debugServerUrl);
+    $('local-debug').checked = settings.localDebug;
+    $('server-url').value = `${endpoint.protocol}//${endpoint.hostname}`;
+    $('server-port').value = endpoint.port || (endpoint.protocol === 'https:' ? '443' : '80');
+    syncDebugFields();
     showError('settings-error', '');
     $('settings-dialog').showModal();
   } catch (error) { showError(state.user ? 'chat-error' : 'auth-error', error); }
@@ -178,20 +194,32 @@ async function openSettings() {
 
 async function saveSettings(event) {
   event.preventDefault();
+  $('settings-save').disabled = true;
   try {
-    await window.bcrag.setServerUrl($('server-url').value.trim());
+    const result = await window.bcrag.setSettings({ localDebug: $('local-debug').checked,
+      address: $('server-url').value.trim(), port: $('server-port').value });
     $('settings-dialog').close();
-    state.user = null;
-    state.conversationId = null;
-    showAuth();
-    showError('auth-error', '服务器地址已更新，请重新登录。');
-    await showCurrentServer();
+    if (result.serverChanged) {
+      state.user = null;
+      state.conversationId = null;
+      $('conversations').replaceChildren();
+      welcome();
+      showAuth();
+      showError('auth-error', result.localDebug ? '已切换至本地调试，请登录对应服务。' : '已恢复线上服务，请重新登录。');
+    }
   } catch (error) { showError('settings-error', error); }
+  finally { $('settings-save').disabled = false; }
 }
 
-async function showCurrentServer() {
-  const settings = await window.bcrag.getSettings();
-  $('current-server').textContent = `当前服务器：${settings.serverUrl}`;
+function syncDebugFields() {
+  const enabled = $('local-debug').checked;
+  $('debug-fields').classList.toggle('hidden', !enabled);
+  $('debug-fields').disabled = !enabled;
+}
+
+async function openWebsite() {
+  try { await window.bcrag.openWebsite(); }
+  catch (_) { showError(state.user ? 'chat-error' : 'auth-error', '无法打开浏览器，请手动访问 https://brag.worldlinesite.com/。'); }
 }
 
 $('login-tab').addEventListener('click', () => setMode('login'));
@@ -206,6 +234,7 @@ $('question').addEventListener('keydown', event => {
 });
 $('new-chat').addEventListener('click', async () => {
   if (state.busy) return;
+  closeMobileSidebar();
   state.conversationId = null;
   $('chat-title').textContent = '开始一次检索';
   $('question').value = '';
@@ -226,9 +255,32 @@ $('logout').addEventListener('click', async () => {
   setBusy(false);
   showAuth();
 });
-$('server-settings-auth').addEventListener('click', openSettings);
-$('server-settings-app').addEventListener('click', openSettings);
+$('settings-auth').addEventListener('click', openSettings);
+$('settings-app').addEventListener('click', openSettings);
+$('website-auth').addEventListener('click', openWebsite);
+$('website-app').addEventListener('click', openWebsite);
+$('local-debug').addEventListener('change', syncDebugFields);
 $('settings-form').addEventListener('submit', saveSettings);
 $('settings-cancel').addEventListener('click', () => $('settings-dialog').close());
-showCurrentServer().catch(() => {});
+$('history-toggle').addEventListener('click', () => {
+  const open = $('app-view').classList.toggle('menu-open');
+  $('history-toggle').setAttribute('aria-expanded', String(open));
+});
+window.addEventListener('bcrag:unauthorized', () => {
+  state.user = null;
+  state.conversationId = null;
+  showAuth();
+  showError('auth-error', '登录已失效，请重新登录。');
+});
 welcome();
+async function restoreWebSession() {
+  if (!window.bcrag.isWeb || !window.bcrag.hasSession()) return;
+  $('auth-submit').disabled = true;
+  try {
+    const result = await window.bcrag.request('/api/me');
+    enterApp(result.user);
+    await refreshSidebar();
+  } catch (error) { showError('auth-error', error); }
+  finally { $('auth-submit').disabled = false; }
+}
+restoreWebSession();

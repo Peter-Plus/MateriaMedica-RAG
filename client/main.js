@@ -1,35 +1,25 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
+const settingsModel = require('./settings');
 
 let window;
 let token = null;
-const DEFAULT_SERVER_URL = 'https://brag.worldlinesite.com';
-let serverUrl = DEFAULT_SERVER_URL;
+let settings = settingsModel.loadSettings();
+let serverUrl = settingsModel.serverUrl(settings);
 
 function settingsFile() {
   return path.join(app.getPath('userData'), 'settings.json');
 }
 
-function validServerUrl(raw) {
-  const parsed = new URL(raw);
-  const loopback = ['127.0.0.1', 'localhost', '[::1]'].includes(parsed.hostname);
-  if (parsed.protocol !== 'https:' && !(loopback && parsed.protocol === 'http:')) {
-    throw new Error('公网服务器必须使用 HTTPS；本地调试可使用 HTTP。');
-  }
-  if (parsed.username || parsed.password || parsed.search || parsed.hash) {
-    throw new Error('请输入服务器根地址，不要包含账号、参数或片段。');
-  }
-  return parsed.origin + parsed.pathname.replace(/\/$/, '');
-}
-
 function loadSettings() {
   try {
     const raw = JSON.parse(fs.readFileSync(settingsFile(), 'utf8'));
-    serverUrl = validServerUrl(raw.serverUrl);
+    settings = settingsModel.loadSettings(raw);
   } catch (_) {
-    serverUrl = DEFAULT_SERVER_URL;
+    settings = settingsModel.loadSettings();
   }
+  serverUrl = settingsModel.serverUrl(settings);
 }
 
 function createWindow() {
@@ -63,15 +53,19 @@ function createWindow() {
 
 app.whenReady().then(() => {
   loadSettings();
-  ipcMain.handle('settings:get', () => ({ serverUrl }));
+  ipcMain.handle('settings:get', () => ({ ...settings, serverUrl }));
   ipcMain.handle('settings:set', (_event, value) => {
-    const next = validServerUrl(value);
+    const next = settingsModel.updateSettings(settings, value);
+    const nextUrl = settingsModel.serverUrl(next);
+    const serverChanged = serverUrl !== nextUrl;
     fs.mkdirSync(path.dirname(settingsFile()), { recursive: true });
-    fs.writeFileSync(settingsFile(), JSON.stringify({ serverUrl: next }, null, 2), 'utf8');
-    serverUrl = next;
-    token = null;
-    return { serverUrl };
+    fs.writeFileSync(settingsFile(), JSON.stringify(next, null, 2), 'utf8');
+    settings = next;
+    serverUrl = nextUrl;
+    if (serverChanged) token = null;
+    return { ...settings, serverUrl, serverChanged };
   });
+  ipcMain.handle('website:open', () => shell.openExternal(settingsModel.ONLINE_URL + '/'));
   ipcMain.handle('api:request', async (_event, request) => {
     const route = String(request?.route || '');
     const method = request?.method === 'POST' ? 'POST' : 'GET';
@@ -91,7 +85,7 @@ app.whenReady().then(() => {
       });
     } catch (error) {
       const reason = error?.cause?.code || error?.code;
-      throw new Error(`无法连接服务器 ${serverUrl}。请在“服务器设置”中检查地址和网络。${reason ? `（${reason}）` : ''}`);
+      throw new Error(`无法连接服务。请检查网络，或在“设置”中检查本地调试选项。${reason ? `（${reason}）` : ''}`);
     }
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || `服务器返回 ${response.status}`);

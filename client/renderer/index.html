@@ -9,6 +9,7 @@
   <script defer src="../node_modules/markdown-it/dist/browser/markdown-it.umd.min.js"></script>
   <script defer src="../node_modules/dompurify/dist/purify.min.js"></script>
   <script defer src="markdown.js"></script>
+  <script defer src="platform.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
@@ -27,9 +28,9 @@
         <button id="auth-submit" class="primary" type="submit">登录</button>
       </form>
       <p id="auth-error" class="error" role="alert"></p>
-      <button id="server-settings-auth" class="text-button">服务器设置</button>
-      <p id="current-server" class="server-current"></p>
+      <a class="download-client web-only" href="https://github.com/Peter-Plus/MateriaMedica-RAG/releases/latest/download/BCRAG-Windows-x64.zip" target="_blank" rel="noopener noreferrer">↓ 下载 Windows 客户端<span>便携 ZIP · 解压即可运行</span></a>
     </div>
+    <div class="auth-tools desktop-only"><button id="settings-auth" class="text-button">设置</button><button id="website-auth" class="text-button">打开网页版 ↗</button></div>
     <div class="auth-aside">
       <p class="aside-label">本草 · 文献 · 知识</p>
       <div class="aside-title">循本草，<br>寻出处。</div>
@@ -39,19 +40,21 @@
   </div>
 
   <div id="app-view" class="app-view hidden">
-    <aside class="sidebar">
+    <aside id="sidebar" class="sidebar">
       <div class="brand"><div class="mini-mark">草</div><div><strong>本草问答</strong><small>古籍资料检索</small></div></div>
       <button id="new-chat" class="new-chat">＋ 新建对话</button>
       <div class="side-label">历史对话</div>
       <nav id="conversations" aria-label="历史对话"></nav>
       <div class="side-bottom">
         <div id="knowledge-status" class="knowledge-status">正在读取知识库…</div>
-        <button id="server-settings-app" class="side-action">服务器设置</button>
+        <a class="side-action web-only download-side" href="https://github.com/Peter-Plus/MateriaMedica-RAG/releases/latest/download/BCRAG-Windows-x64.zip" target="_blank" rel="noopener noreferrer">↓ 下载 Windows 客户端</a>
+        <button id="website-app" class="side-action desktop-only">打开网页版 ↗</button>
+        <button id="settings-app" class="side-action desktop-only">设置</button>
         <button id="logout" class="side-action">退出登录</button>
       </div>
     </aside>
     <main class="main">
-      <header class="topbar"><div><span class="eyebrow">BCRAG · 古籍资料问答</span><h2 id="chat-title">开始一次检索</h2></div><div id="username-label" class="user-badge"></div></header>
+      <header class="topbar"><button id="history-toggle" class="mobile-menu" aria-controls="sidebar" aria-expanded="false" type="button">对话</button><div><span class="eyebrow">BCRAG · 古籍资料问答</span><h2 id="chat-title">开始一次检索</h2></div><div id="username-label" class="user-badge"></div></header>
       <section id="messages" class="messages" aria-label="对话内容" aria-live="polite"></section>
       <div class="composer-wrap">
         <p id="chat-error" class="error" role="alert"></p>
@@ -71,6 +74,20 @@
       <div class="welcome-steps"><span>01 提出问题</span><span>02 阅读回答</span><span>03 核对出处</span></div>
     </div>
   </template>
-  <dialog id="settings-dialog" aria-labelledby="settings-title"><form id="settings-form" method="dialog"><h2 id="settings-title">服务器设置</h2><p>线上地址为 https://brag.worldlinesite.com；本地调试可填 http://127.0.0.1:8000。</p><label for="server-url">服务器地址</label><input id="server-url" type="url" required><p id="settings-error" class="error" role="alert"></p><div class="dialog-actions"><button id="settings-cancel" type="button">取消</button><button class="primary" type="submit">保存</button></div></form></dialog>
+  <dialog id="settings-dialog" aria-labelledby="settings-title">
+    <form id="settings-form" method="dialog">
+      <h2 id="settings-title">设置</h2>
+      <p class="settings-intro">默认连接线上服务，直接登录即可使用。</p>
+      <label class="debug-toggle" for="local-debug"><span>开启本地调试</span><input id="local-debug" type="checkbox" role="switch" aria-controls="debug-fields"></label>
+      <p class="settings-help">仅在运行自己的后端服务时开启。</p>
+      <fieldset id="debug-fields" class="hidden" disabled>
+        <legend class="sr-only">本地服务连接</legend>
+        <div class="endpoint-fields"><div><label for="server-url">服务器地址</label><input id="server-url" type="url" placeholder="http://127.0.0.1" required></div><div><label for="server-port">端口</label><input id="server-port" type="number" min="1" max="65535" step="1" value="8000" required></div></div>
+        <p class="settings-help">默认地址为本机。修改连接后需要重新登录。</p>
+      </fieldset>
+      <p id="settings-error" class="error" role="alert"></p>
+      <div class="dialog-actions"><button id="settings-cancel" type="button">取消</button><button id="settings-save" class="primary" type="submit">保存</button></div>
+    </form>
+  </dialog>
 </body>
 </html>

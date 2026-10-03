@@ -1,14 +1,24 @@
 # 本草问答（BCRAG）
 
-以《本草綱目》为初始语料、可扩展到多部古籍的课程项目：Windows Electron 客户端 + Python 服务端 + SQLite 知识库。客户端提供即时注册登录、历史对话、问答和出处展示。服务端完成文本切分、检索、云端模型调用与数据保存。
+以《本草綱目》为初始语料、可扩展到多部古籍的课程项目：网页版 / Windows Electron 客户端 + Python 服务端 + SQLite 知识库。两端共用页面与后端，提供即时注册登录、历史对话、Markdown 问答和出处展示。服务端完成文本切分、检索、云端模型调用与数据保存。
 
 > 古籍记载供资料检索和学习，不构成诊断、处方或用药建议。
+
+## 在线使用
+
+**网页地址：[https://brag.worldlinesite.com/](https://brag.worldlinesite.com/)**
+
+**Windows 客户端：[下载最新版 ZIP](https://github.com/Peter-Plus/MateriaMedica-RAG/releases/latest/download/BCRAG-Windows-x64.zip)** · [版本与发布说明](https://github.com/Peter-Plus/MateriaMedica-RAG/releases)。解压后运行 `BCRAG.exe`；网页登录页与侧栏也提供下载入口。
+
+使用电脑或手机浏览器直接打开，无需下载客户端；已有客户端账号可以直接登录，历史对话共用。手机端点击“对话”展开历史与退出登录入口。网页登录状态保存在当前标签页的会话存储中，刷新可恢复，关闭标签页后通常需重新登录（浏览器恢复标签页时可能恢复会话）。
+
+网页更新：在 `client/` 运行 `npm ci`、`npm run build:web`，发布 `client/dist/web/` 中的静态文件。操作见[前端更新](docs/部署与更新/前端更新.md)。
 
 ## 项目结构
 
 | 路径 | 用途 |
 | --- | --- |
-| `client/` | Electron 客户端 |
+| `client/` | 网页与 Electron 共用前端、构建脚本 |
 | `server/` | 后端、知识库导入与检索 |
 | `文献/原文/` | 可分发的 UTF-8 古籍语料；初始文件为《本草綱目》 |
 | `docs/部署与更新/` | 按后端、RAG、前端和文献分类的操作指南 |
@@ -27,7 +37,7 @@
 
 每次交付前端代码更新都要重新运行该命令并确认新 ZIP，具体步骤见[前端更新](docs/部署与更新/前端更新.md)。
 
-当前已构建 `client/out/0.1.1/make/zip/win32/x64/本草问答-win32-x64-0.1.1.zip`（约 201 MiB）。如果注册时出现“无法连接服务器”，先看登录页显示的“当前服务器”；若仍为 `http://127.0.0.1:8000`，在“服务器设置”中改为 `https://brag.worldlinesite.com` 并保存。若 Electron 下载源不可达，可临时设置 `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/` 后重新执行 `npm install` 和 `npm run make`。
+便携包按版本放在上述输出目录。客户端默认使用线上服务；左下角“设置”内可开启本地调试，开启后才显示服务器地址和端口。关闭调试并保存即可恢复线上服务。“打开网页版”会使用系统浏览器访问网页端。若 Electron 下载源不可达，可临时设置 `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/` 后重新执行 `npm install` 和 `npm run make`。
 
 ## RAG 流程
 
