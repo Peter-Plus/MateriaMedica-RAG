@@ -1,0 +1,14 @@
+__pycache__/
+.venv/
+*.py[cod]
+.pytest_cache/
+.env
+data/
+client/node_modules/
+client/.npm-cache/
+client/out/
+client/dist/
+client/.vite/
+*.log
+deploy/*.tar.gz
+

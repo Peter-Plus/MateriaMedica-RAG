@@ -1,0 +1,24 @@
+{
+  "name": "bcrag-desktop",
+  "productName": "本草问答",
+  "version": "0.1.2",
+  "description": "基于古籍检索增强的中药资料问答客户端",
+  "main": "main.js",
+  "author": "BCRAG course team",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "test": "electron ../tests/test-ui.js",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.11.2",
+    "@electron-forge/maker-zip": "^7.11.2",
+    "electron": "^44.5.1"
+  },
+  "dependencies": {
+    "dompurify": "^3.4.16",
+    "markdown-it": "^15.0.2"
+  }
+}

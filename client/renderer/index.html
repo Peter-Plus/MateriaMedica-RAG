@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'">
+  <title>本草问答</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="../node_modules/markdown-it/dist/browser/markdown-it.umd.min.js"></script>
+  <script defer src="../node_modules/dompurify/dist/purify.min.js"></script>
+  <script defer src="markdown.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div id="auth-view" class="auth-view">
+    <div class="auth-card">
+      <div class="mark">草</div>
+      <p class="eyebrow">BCRAG · 中药古籍问答</p>
+      <h1>本草问答</h1>
+      <p class="subtitle">检索本草原文，让每一次理解都有据可循。</p>
+      <div class="auth-switch"><button id="login-tab" class="active">登录</button><button id="register-tab">注册</button></div>
+      <form id="auth-form">
+        <label for="username">用户名</label>
+        <input id="username" autocomplete="username" required minlength="3" maxlength="24" placeholder="3–24 位字母、数字或下划线">
+        <label for="password">密码</label>
+        <input id="password" type="password" autocomplete="current-password" required minlength="8" placeholder="至少 8 位">
+        <button id="auth-submit" class="primary" type="submit">登录</button>
+      </form>
+      <p id="auth-error" class="error" role="alert"></p>
+      <button id="server-settings-auth" class="text-button">服务器设置</button>
+      <p id="current-server" class="server-current"></p>
+    </div>
+    <div class="auth-aside">
+      <p class="aside-label">本草 · 文献 · 知识</p>
+      <div class="aside-title">循本草，<br>寻出处。</div>
+      <p class="aside-description">从一个问题出发，<br>在古籍原文中找到理解的线索。</p>
+      <div class="aside-note"><span>古籍有据 · 回答有源</span><p>资料查询工具，不提供个体诊疗或处方。</p></div>
+    </div>
+  </div>
+
+  <div id="app-view" class="app-view hidden">
+    <aside class="sidebar">
+      <div class="brand"><div class="mini-mark">草</div><div><strong>本草问答</strong><small>古籍资料检索</small></div></div>
+      <button id="new-chat" class="new-chat">＋ 新建对话</button>
+      <div class="side-label">历史对话</div>
+      <nav id="conversations" aria-label="历史对话"></nav>
+      <div class="side-bottom">
+        <div id="knowledge-status" class="knowledge-status">正在读取知识库…</div>
+        <button id="server-settings-app" class="side-action">服务器设置</button>
+        <button id="logout" class="side-action">退出登录</button>
+      </div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><div><span class="eyebrow">BCRAG · 古籍资料问答</span><h2 id="chat-title">开始一次检索</h2></div><div id="username-label" class="user-badge"></div></header>
+      <section id="messages" class="messages" aria-label="对话内容" aria-live="polite"></section>
+      <div class="composer-wrap">
+        <p id="chat-error" class="error" role="alert"></p>
+        <form id="chat-form" class="composer"><label class="sr-only" for="question">关于中药古籍的问题</label><textarea id="question" rows="2" maxlength="500" placeholder="输入关于中药古籍的问题…" aria-describedby="composer-hint" required></textarea><button id="send" type="submit" class="primary">发送 ↑</button></form>
+        <div id="composer-hint" class="composer-hint"><span>Enter 发送 · Shift + Enter 换行</span><span>最多 500 字</span></div>
+        <p class="footnote">古籍记载仅供资料参考，不代替现代医学建议。</p>
+      </div>
+    </main>
+  </div>
+
+  <template id="welcome-template">
+    <div class="welcome">
+      <span class="welcome-label">古籍资料问答</span>
+      <h2>从一味药材开始</h2>
+      <p>把问题交给本草，让回答回到原文。<br>检索收录文献，阅读整理后的回答，并核对古籍出处。</p>
+      <div class="welcome-example"><span>可以这样问</span><p>甘草在《本草綱目》中有哪些记载？</p></div>
+      <div class="welcome-steps"><span>01 提出问题</span><span>02 阅读回答</span><span>03 核对出处</span></div>
+    </div>
+  </template>
+  <dialog id="settings-dialog" aria-labelledby="settings-title"><form id="settings-form" method="dialog"><h2 id="settings-title">服务器设置</h2><p>线上地址为 https://brag.worldlinesite.com；本地调试可填 http://127.0.0.1:8000。</p><label for="server-url">服务器地址</label><input id="server-url" type="url" required><p id="settings-error" class="error" role="alert"></p><div class="dialog-actions"><button id="settings-cancel" type="button">取消</button><button class="primary" type="submit">保存</button></div></form></dialog>
+</body>
+</html>

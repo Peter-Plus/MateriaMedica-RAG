@@ -1,0 +1,2 @@
+# Recommended for full simplified/traditional query conversion.
+opencc-python-reimplemented>=0.1.7,<1

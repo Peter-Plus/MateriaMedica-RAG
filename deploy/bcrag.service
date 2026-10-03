@@ -1,0 +1,15 @@
+[Unit]
+Description=BCRAG RAG question answering API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bcrag
+WorkingDirectory=/opt/bcrag
+ExecStart=/usr/bin/python3 -m server.api
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
