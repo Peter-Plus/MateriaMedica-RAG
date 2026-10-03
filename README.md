@@ -19,16 +19,7 @@
 
 ## 本地运行
 
-需要 Python 3.8+、Node.js 22+、npm。命令从项目根目录执行。
-
-1. 复制 `.env.example` 为 `.env`，填写 `BCRAG_API_KEY`。API Key 只放在服务端，不放进客户端。
-2. 可选：`python -m pip install -r server/requirements.txt`，安装完整的简繁转换；未安装时也能运行，内置常见字回退表。
-3. 导入古籍：`python -X utf8 -m server.ingest "文献/原文/本草綱目-全文.txt"`。
-4. 检查检索：`python -X utf8 -m server.search "人参有哪些记载"`。
-5. 启动后端：`python -X utf8 -m server.api`。健康检查：`http://127.0.0.1:8000/api/health`。
-6. 另开终端：`cd client`、`npm install`、`npm start`。
-
-客户端首次启动默认连接 `https://brag.worldlinesite.com`；在“服务器设置”里可改为 `http://127.0.0.1:8000` 进行本地调试。公网服务器必须使用 `https://` 地址。注册账号后即可查看知识库；服务端未配置 API Key 时，模型生成问答不可用。已运行过旧版本的客户端可能保留原先服务器设置，需手动改为线上地址。
+环境准备、模型 Key 配置、知识库导入、前后端启动及常见问题见 [本地运行与调试](docs/部署与更新/本地运行与调试.md)。
 
 ### Windows 分发
 
